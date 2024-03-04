@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "wXFICxeLgAJ1FY1VXYlBQKHLb0hYgAc2Ytu1G/J9DdA=",
+  "Source": "GoogleCloudPubSubReceiverApi",
+  "BasePath": "_content/GoogleCloudPubSubReceiverApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
