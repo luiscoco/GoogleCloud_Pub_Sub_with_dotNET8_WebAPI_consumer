@@ -279,4 +279,13 @@ We execute the following command to run the application
 dotnet run
 ```
 
+We first run the producer application and we send a message to the Google Cloud Pub/Sub Topic
+
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/ad3a6d6f-e559-4cbc-b56b-0a9c71ab3e9c)
+
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/2c700b68-2276-4f1a-955a-8f07537d9b29)
+
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/2cbb874b-09a9-4732-80e0-d5accec91e24)
+
+Then we run the receiver application and we receive the message from the Google Cloud Pub/Sub Subscription
 
