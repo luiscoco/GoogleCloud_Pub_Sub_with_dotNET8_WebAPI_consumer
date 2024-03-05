@@ -289,3 +289,12 @@ We first run the producer application and we send a message to the Google Cloud 
 
 Then we run the receiver application and we receive the message from the Google Cloud Pub/Sub Subscription
 
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/fd387d4b-7f25-4a24-9453-82859c318969)
+
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/d15a17bc-5c7f-428a-b948-7189ea3aae5c)
+
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/ada5e816-ce9d-46a7-adc6-ce370af34deb)
+
+
+
+
