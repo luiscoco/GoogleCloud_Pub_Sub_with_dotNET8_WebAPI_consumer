@@ -1,4 +1,4 @@
-# GoogleCloud Pub/Sub with dotNET8 WebAPI producer
+# GoogleCloud Pub/Sub with dotNET8 WebAPI messages consumer
 
 Source code for this repo is available in the github: 
 
