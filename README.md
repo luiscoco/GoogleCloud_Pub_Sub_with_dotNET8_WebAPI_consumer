@@ -2,9 +2,9 @@
 
 ## 1. Create Google Cloud Pub/Sub service
 
-Google Cloud Project: You'll need a Google Cloud Project, if you don't have one, create one at https://console.cloud.google.com
+**Google Cloud Project**: You'll need a Google Cloud Project, if you don't have one, create one at https://console.cloud.google.com
 
-Pub/Sub API Enabled: Make sure the Pub/Sub API is enabled in your project. You can check this or enable it in the "APIs & Services" section of the Google Cloud Console
+**Pub/Sub API Enabled**: Make sure the Pub/Sub API is enabled in your project. You can check this or enable it in the "APIs & Services" section of the Google Cloud Console
 
 We first have to log in to Google Cloud Service 
 
@@ -113,7 +113,7 @@ Navigate to the directory where you want to create your new project
 Run the following command to create a new Web API project:
 
 ```
-dotnet new webapi -n GooglePubSubSenderApi
+dotnet new webapi -n GooglePubSubReceiverApi
 ```
 
 This command creates a new directory with the project name, sets up a basic Web API project structure, and restores any necessary packages
@@ -136,20 +136,27 @@ We run this command to load the project library
 dotnet add package Google.Cloud.PubSub.V1
 ```
 
-![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_producer/assets/32194879/c833a1f3-730c-454e-b041-38583e670cbe)
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/8f4d95fd-2edc-4ace-9909-e1a6b9c634cd)
 
 ## 4. Create the project structure
 
-![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_producer/assets/32194879/f73e2442-6f28-402e-b276-66196a4a68ff)
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/aa4117aa-ab04-4bc9-9d83-2251ea0d4712)
 
 ## 5. Create the Controller
 
-```csharp
-using System.Threading.Tasks;
-using Google.Cloud.PubSub.V1;
-using Microsoft.AspNetCore.Mvc;
+**PubSubReceiverApiController.cs**
 
-namespace PubSubSenderApi.Controllers
+```csharp
+using Google.Cloud.PubSub.V1;
+using Google.Protobuf;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace PubSubReceiverApi.Controllers
 {
     public class MessageDto
     {
@@ -161,33 +168,40 @@ namespace PubSubSenderApi.Controllers
     [Route("api/[controller]")]
     public class PubSubController : ControllerBase
     {
-        private static string projectId = "XXXXXXXXXX"; // Replace with your Google Cloud project ID
-        private static string topicId = "mytopic"; // Replace with your topic ID
+        private static string projectId = "endless-set-412215";
+        private static string subscriptionId = "mytopic-sub";
+        private static SubscriberClient? subscriber;
+        private static ConcurrentQueue<MessageDto> receivedMessages = new ConcurrentQueue<MessageDto>();
 
-        private static PublisherServiceApiClient publisher;
-
-        static PubSubController()
+        [HttpGet("receive")]
+        public ActionResult<IEnumerable<MessageDto>> ReceiveMessages(string? priority = null)
         {
-            publisher = PublisherServiceApiClient.Create();
+            if (string.IsNullOrEmpty(priority))
+            {
+                return receivedMessages.ToList();
+            }
+            else
+            {
+                return receivedMessages.Where(m => m.Priority == priority).ToList();
+            }
         }
 
-        [HttpPost("send")]
-        public async Task<ActionResult> SendMessage([FromBody] MessageDto messageDto)
+        // Ensure this method is defined and matches what is called in Program.cs
+        public static async Task StartMessageProcessing(CancellationToken stoppingToken)
         {
-            TopicName topicName = new TopicName(projectId, topicId);
-
-            PubsubMessage pubsubMessage = new PubsubMessage
+            SubscriptionName subscriptionName = SubscriptionName.FromProjectSubscription(projectId, subscriptionId);
+            subscriber = await SubscriberClient.CreateAsync(subscriptionName);
+            await subscriber.StartAsync((message, cancellationToken) =>
             {
-                Data = Google.Protobuf.ByteString.CopyFromUtf8(messageDto.Body),
-                Attributes =
-                {
-                    { "priority", messageDto.Priority }
-                }
-            };
+                // Message handling logic
+                string body = message.Data.ToStringUtf8();
+                message.Attributes.TryGetValue("priority", out string priority);
+                Console.WriteLine($"Received message: {body}, Priority: {priority}");
 
-            await publisher.PublishAsync(topicName, new[] { pubsubMessage });
+                receivedMessages.Enqueue(new MessageDto { Body = body, Priority = priority ?? "normal" });
 
-            return Ok($"Sent message: {messageDto.Body}, Priority: {messageDto.Priority}");
+                return Task.FromResult(SubscriberClient.Reply.Ack);
+            });
         }
     }
 }
@@ -195,12 +209,18 @@ namespace PubSubSenderApi.Controllers
 
 ## 6. Modify the application middleware(program.cs)
 
+**Program.cs**
+
 ```csharp
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using PubSubReceiverApi.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHostedService<PubSubBackgroundService>();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -208,7 +228,7 @@ builder.Services.AddControllers();
 // Add Swagger
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ServiceBusSenderApi", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PubSubReceiverApi", Version = "v1" });
 });
 
 var app = builder.Build();
@@ -222,7 +242,7 @@ app.UseSwagger();
 // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ServiceBusSenderApi v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "PubSubReceiverApi v1");
 });
 
 app.UseAuthorization();
@@ -232,7 +252,26 @@ app.MapControllers();
 app.Run();
 ```
 
-## 7. Run and Test the application
+## 7. Create a BackgroundService
+
+**PubSubBackgroundService**
+
+```csharp
+using Microsoft.Extensions.Hosting;
+using System.Threading;
+using System.Threading.Tasks;
+using PubSubReceiverApi.Controllers;
+public class PubSubBackgroundService : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        // Assuming PubSubController has been adjusted to support this pattern
+        await PubSubController.StartMessageProcessing(stoppingToken);
+    }
+}
+```
+
+## 8. Run and Test the application
 
 We execute the following command to run the application
 
@@ -240,4 +279,4 @@ We execute the following command to run the application
 dotnet run
 ```
 
-![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_producer/assets/32194879/b01782d4-ef92-4305-b2dc-0f2ba808647e)
+
