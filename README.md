@@ -279,7 +279,7 @@ We execute the following command to run the application
 dotnet run
 ```
 
-We first run the producer application and we send a message to the Google Cloud Pub/Sub Topic
+We first run the **producer** application and we send a message to the Google Cloud Pub/Sub Topic
 
 ![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/ad3a6d6f-e559-4cbc-b56b-0a9c71ab3e9c)
 
@@ -287,7 +287,7 @@ We first run the producer application and we send a message to the Google Cloud 
 
 ![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/2cbb874b-09a9-4732-80e0-d5accec91e24)
 
-Then we run the receiver application and we receive the message from the Google Cloud Pub/Sub Subscription
+Then we run the **receiver** application and we receive the message from the Google Cloud Pub/Sub Subscription
 
 ![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/fd387d4b-7f25-4a24-9453-82859c318969)
 
@@ -295,6 +295,11 @@ Then we run the receiver application and we receive the message from the Google 
 
 ![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/ada5e816-ce9d-46a7-adc6-ce370af34deb)
 
+We also verify in the Google Cloud the message received. First we have to stop the Receiver application, because the background service is continously pulling the messages
+
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/3a3a26d5-510b-4b42-a50a-1f9a6acc437d)
+
+![image](https://github.com/luiscoco/GoogleCloud_Pub_Sub_with_dotNET8_WebAPI_consumer/assets/32194879/7f84bb05-9265-428d-92b3-34a156df7388)
 
 
 
